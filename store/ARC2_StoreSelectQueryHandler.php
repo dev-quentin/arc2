@@ -277,7 +277,7 @@ class ARC2_StoreSelectQueryHandler extends ARC2_StoreQueryHandler
             $entries = []; // in case an exception gets thrown
 
             $entries = $this->store->a['db_object']->fetchList($v_sql);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->addError($e->getMessage());
         }
 
@@ -419,9 +419,8 @@ class ARC2_StoreSelectQueryHandler extends ARC2_StoreQueryHandler
             }
 
             return array_merge($this->getGraphInfos($pattern['parent_id']), $r);
-        }
-        /* FROM / FROM NAMED */
-        else {
+        } else {
+            /* FROM / FROM NAMED */
             if (isset($this->infos['query']['dataset'])) {
                 foreach ($this->infos['query']['dataset'] as $set) {
                     $r[] = array_merge(['type' => 'dataset'], $set);
@@ -548,14 +547,16 @@ class ARC2_StoreSelectQueryHandler extends ARC2_StoreQueryHandler
         return ''.(
             $this->is_union_query
                 ? 'SELECT'
-                : 'SELECT'.$this->getDistinctSQL()).$nl.
+                : 'SELECT'.$this->getDistinctSQL()
+        ).$nl.
                     $this->getResultVarsSQL().$nl. /* fills $index['sub_joins'] */
                     $this->getFROMSQL().
                     $this->getAllJoinsSQL().
                     $this->getWHERESQL().
                     $this->getGROUPSQL().
                     $this->getORDERSQL().
-                    ($this->is_union_query
+                    (
+                        $this->is_union_query
                         ? ''
                         : $this->getLIMITSQL()
                     ).$nl.'';
@@ -608,9 +609,8 @@ class ARC2_StoreSelectQueryHandler extends ARC2_StoreQueryHandler
                         $r .= $var['aggregate'].'('.$conv_code.$distinct_code.$tbl_alias.') AS `'.$var['alias'].'`';
                         $added[$var['alias']] = 1;
                     }
-                }
-                /* normal var */
-                else {
+                } else {
+                    /* normal var */
                     if (!isset($added[$var_name])) {
                         $r .= $r ? ','.$nl.'  ' : '  ';
                         $r .= $tbl_alias.' AS `'.$var_name.'`';
@@ -1216,7 +1216,8 @@ class ARC2_StoreSelectQueryHandler extends ARC2_StoreQueryHandler
         /* some really ugly tweaks */
         /* empty language filter: FILTER ( lang(?v) = '' ) */
         $r = preg_replace(
-            '/\(\/\* language call \*\/ ([^\s]+) = ""\)/s', '((\\1 = "") OR (\\1 LIKE "%:%"))',
+            '/\(\/\* language call \*\/ ([^\s]+) = ""\)/s',
+            '((\\1 = "") OR (\\1 LIKE "%:%"))',
             $r
         );
 
@@ -1946,7 +1947,6 @@ class ARC2_StoreSelectQueryHandler extends ARC2_StoreQueryHandler
                 if (in_array($col, ['s', 'o'])) {
                     if (strpos($q_sql, '`'.$var_name.' type`')) {
                         $r .= ', '.$nl.'    TMP.`'.$var_name.' type` AS `'.$var_name.' type`';
-                        // $r .= ', ' . $nl . '    CASE TMP.`' . $var_name . ' type` WHEN 2 THEN "literal" WHEN 1 THEN "bnode" ELSE "uri" END AS `' . $var_name . ' type`';
                     } else {
                         $r .= ', '.$nl.'    NULL AS `'.$var_name.' type`';
                     }

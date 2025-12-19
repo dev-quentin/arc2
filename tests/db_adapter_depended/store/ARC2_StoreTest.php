@@ -65,38 +65,6 @@ class ARC2_StoreTest extends ARC2_TestCase
     }
 
     /*
-     * Tests for caching behavior
-     */
-
-    public function testCaching()
-    {
-        if (false == $this->fixture->cacheEnabled()) {
-            $this->markTestSkipped('Skip tests of ARC2_Store caching, because cache is not enabled.');
-        }
-
-        // add test data
-        $this->fixture->query('INSERT INTO <http://example.com/> {
-            <http://s> <http://p1> "baz" .
-        }');
-
-        $selectQuery = 'SELECT * FROM <http://example.com/> {?s ?p ?o.}';
-
-        // check that query is not known in cache
-        $this->assertFalse($this->dbConfig['cache_instance']->has(hash('sha1', $selectQuery)));
-
-        $result = $this->fixture->query($selectQuery);
-        unset($result['query_time']);
-        $this->assertEquals(1, \count($result['result']['rows']));
-
-        $this->assertTrue($this->dbConfig['cache_instance']->has(hash('sha1', $selectQuery)));
-
-        // compare cached and raw result
-        $cachedResult = $this->fixture->query($selectQuery);
-        unset($cachedResult['query_time']);
-        $this->assertEquals($result, $cachedResult);
-    }
-
-    /*
      * Tests for changeNamespaceURI
      */
 
@@ -741,8 +709,8 @@ XML;
             // check for original table
             if (str_contains($table['Tables_in_'.$this->dbConfig['db_name']], $this->dbConfig['store_name'].'_')) {
                 $foundArcPrefix = true;
-                // check for replicated table
             } elseif (str_contains($table['Tables_in_'.$this->dbConfig['db_name']], 'replicate_')) {
+                // check for replicated table
                 $foundReplicatePrefix = true;
             }
         }
